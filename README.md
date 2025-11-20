@@ -78,7 +78,7 @@ The repository contains the following folders:
 
   ---
 
-## Made by Team CBB/12
+## Made by Team TTPCBB/12
 
-[![Team Logo]
+![Team Logo](Logo.png)
 
