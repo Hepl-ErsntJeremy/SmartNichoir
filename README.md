@@ -57,7 +57,7 @@ When the PIR sensor detects movement, a picture is captured with IR lighting and
 
 The repository contains the following folders:
 
-- [**stm32/**](stm32/) – ESP32 TimerCAM firmware, PIR detection, IR LED control  
+- [**esp32/**](esp32/) – ESP32 TimerCAM firmware, PIR detection, IR LED control  
 - [**raspberry/**](raspberry/) – Raspberry Pi MQTT receiver, MariaDB storage, Flask web server  
 - [**web/**](web/) – HTML/CSS/JS interface, image gallery, battery visualizations  
 
