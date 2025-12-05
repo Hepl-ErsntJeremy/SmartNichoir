@@ -9,7 +9,7 @@ from SmartNichoir_tables import Photo, Log, Battery, Base
 
 # ----------  MariaDB ----------
 engine = create_engine(
-    "mariadb+mariadbconnector://ethan:12345678@192.168.2.41:3306/SmartNichoir",
+    "mariadb+mariadbconnector://ethan:12345678@192.168.2.223:3306/SmartNichoir",
     echo=False
 )
 Session = sessionmaker(bind=engine)
@@ -53,5 +53,5 @@ client.username_pw_set("timercam", "12345678")
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect("192.168.2.41", 1883, 60)
+client.connect("192.168.2.223", 1883, 60)
 client.loop_forever()
