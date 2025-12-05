@@ -2,6 +2,18 @@ import paho.mqtt.client as mqtt
 from datetime import datetime
 import os
 
+from SQLAlchemy import create_engine
+from SQLAlchemy.orm import sessionmaker
+
+from SmartNichoir_tables import Photo, Log, Battery, Base
+
+# ----------  MariaDB ----------
+engine = create_engine(
+    "mariadb+mariadbconnector://ethan:12345678@192.168.2.41:3306/SmartNichoir",
+    echo=False
+)
+Session = sessionmaker(bind=engine)
+
 SAVE_DIR = "/home/ethan/camera/photos"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -15,13 +27,29 @@ def on_message(client, userdata, msg):
     filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.jpg")
     filepath = os.path.join(SAVE_DIR, filename)
 
+    # Enregistrer le fichier localement
     with open(filepath, "wb") as f:
         f.write(msg.payload)
+
+    # Enregistrer dans MariaDB
+    try:
+        with Session() as session:
+            new_photo = Photo(
+                file_name=filename,
+                file_path=filepath,
+                timestamp=datetime.now()
+            )
+            session.add(new_photo)
+            session.commit()
+            print("Photo enregistrée dans SQL ! ID =", new_photo.id)
+
+    except Exception as e:
+        print("Erreur DB :", e)
 
     print("Photo enregistrée :", filepath)
 
 client = mqtt.Client()
-client.username_pw_set("timercam","12345678")
+client.username_pw_set("timercam", "12345678")
 client.on_connect = on_connect
 client.on_message = on_message
 
