@@ -42,9 +42,23 @@ void GoToSleep24h() {
   esp_deep_sleep_start();
 }
 
+void BatteryLevel(){
+  if (!client.connected()) {
+        connectMQTT();
+    }
+    float level = TimerCAM.Power.getBatteryLevel();
+    level = 49.3;
+    char msg[50];
+    sprintf(msg, "Battery: %.2f", level);
+    client.publish("camera/battery", msg);
+    delay(100);
+    Serial.printf("Batterie envoyée : %s %\n", msg);
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Start");
+  TimerCAM.begin(true);
   pinMode(LEDIR_PIN, OUTPUT);
   pinMode(PIR_PIN, INPUT);
 
@@ -111,9 +125,8 @@ void setup() {
 
     Serial.println();
     client.publish("camera/photo",buf,len);
-
     Serial.println("Photo envoyée au Raspberry.");
-    
+    BatteryLevel();
     TimerCAM.Camera.free();
     delay(50);
     }
@@ -148,7 +161,7 @@ void setup() {
     else {
       Serial.println("Failed to send log");
     }
-
+    BatteryLevel();
     client.loop(); // forcer l’envoi immédiat
 
     // Retour en deep sleep pour 24h
