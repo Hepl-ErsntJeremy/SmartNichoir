@@ -1,64 +1,110 @@
 #include "M5TimerCAM.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiManager.h>
 
 #define WIFI_SSID     "electroProjectWifi"
 #define WIFI_PASS     "B1MesureEnv"
 
-#define MQTT_SERVER   "192.168.2.41"   // Raspberry Pi IP
+#define MQTT_SERVER   "192.168.2.223"   // Raspberry Pi IP
 #define MQTT_PORT     1883  
+
+#define PIR_PIN 4 //wake up Pin
+#define LEDIR_PIN 13 //LED Infrarouge Pin 
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-void reconnectMQTT() {
+void connectMQTT() {
   while (!client.connected()) {
-    Serial.print("Connexion MQTT...");
+    Serial.print("MQTT connected...");
     if (client.connect("TimerCAM", "timercam","12345678" )) {
       Serial.println(" OK");
     } else {
-      Serial.print(" Échec : ");
+      Serial.print(" Fail : ");
       Serial.println(client.state());
       delay(2000);
     }
   }
 }
 
-void setup() {
-  Serial.begin(115200);
-
-  TimerCAM.begin();
-  if (!TimerCAM.Camera.begin()) {
-    Serial.println("Camera Init Fail");
-    return;
-  }
-  Serial.println("Camera Init Success");
-  TimerCAM.Camera.sensor->set_pixformat(TimerCAM.Camera.sensor, PIXFORMAT_JPEG);
-  TimerCAM.Camera.sensor->set_framesize(TimerCAM.Camera.sensor, FRAMESIZE_VGA); // 640x480  TimerCAM.Camera.sensor->set_vflip(TimerCAM.Camera.sensor, 1);
-  TimerCAM.Camera.sensor->set_hmirror(TimerCAM.Camera.sensor, 0);
-
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  Serial.print("Connexion WiFi...");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("\nWiFi connecté !");
-  Serial.print("IP TimerCAM : ");
-  Serial.println(WiFi.localIP());
-
-  client.setServer(MQTT_SERVER, MQTT_PORT);
-  client.setBufferSize(40000);
+void GoToSleep1min (){
+  Serial.println(" Sleep 1min...");
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)PIR_PIN, 1);
+  esp_sleep_enable_timer_wakeup(60ULL * 1000000ULL);
+  esp_deep_sleep_start();
+}
+ 
+void GoToSleep24h() {
+  Serial.println("Sleep 24h...");
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)PIR_PIN, 1);
+  esp_sleep_enable_timer_wakeup(60ULL * 1000000ULL);//24ULL * 60ULL * 60ULL * 1000000ULL
+  esp_deep_sleep_start();
 }
 
-void loop() {
-  if (!client.connected()) {
-    reconnectMQTT();
-  }
-  client.loop();
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Start");
+  pinMode(LEDIR_PIN, OUTPUT);
+  pinMode(PIR_PIN, INPUT);
 
-  if (TimerCAM.Camera.get()) {
+  digitalWrite(LEDIR_PIN, LOW);
+
+  //------------ Connexion Wifi ------------
+   WiFiManager wm;
+  
+  // Custom parameters
+  WiFiManagerParameter custom_api_key("api", "API Key", "", 32);
+  WiFiManagerParameter custom_mode("mode", "Device Mode", "", 16);
+  wm.addParameter(&custom_api_key);
+  wm.addParameter(&custom_mode);
+
+  // AJOUT IMPORTANT : Timeout. Si pas de wifi après 30 sec, on ne bloque pas indéfiniment (vide la batterie)
+  wm.setConfigPortalTimeout(180); // 3 minutes pour configurer si besoin
+  wm.setConnectTimeout(30);       // 30 secondes pour essayer de se connecter au WiFi connu
+
+  // Connexion
+  if(!wm.autoConnect("ESP32_SmartNichoir_TTPCBB", "12345678")) {
+      Serial.println("Echec connexion WiFi ou Timeout -> Dodo");
+  }
+
+  // Get wake-up cause 
+  esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+
+  //------------ WAKE UP PIR ------------
+  if (cause == ESP_SLEEP_WAKEUP_EXT0) {
+
+    Serial.println("Wake Up!");
+
+    // Enable led
+    digitalWrite(LEDIR_PIN, HIGH);  
+    delay(200);
+
+    // Init camera 
+    TimerCAM.begin();  
+    if (!TimerCAM.Camera.begin()) {
+      Serial.println("Camera Init Fail");
+      return;
+    }
+    Serial.println("Camera Init Success");
+    TimerCAM.Camera.sensor->set_pixformat(TimerCAM.Camera.sensor, PIXFORMAT_JPEG);
+    TimerCAM.Camera.sensor->set_framesize(TimerCAM.Camera.sensor, FRAMESIZE_VGA); // 640x480  
+    TimerCAM.Camera.sensor->set_hmirror(TimerCAM.Camera.sensor, 0);
+    TimerCAM.Camera.sensor->set_vflip(TimerCAM.Camera.sensor, 1);
+
+    // WIFI
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    Serial.print("WiFi connection...");
+    while (WiFi.status() != WL_CONNECTED) {
+     delay(500);
+      Serial.print(".");
+    }
+    Serial.println("\nWiFi connected !");
+
+    client.setServer(MQTT_SERVER, MQTT_PORT);
+    client.setBufferSize(40000);
+
+    if (TimerCAM.Camera.get()) {
     Serial.println("Photo !");
     int len = TimerCAM.Camera.fb->len;
     uint8_t* buf = TimerCAM.Camera.fb->buf;
@@ -69,7 +115,50 @@ void loop() {
     Serial.println("Photo envoyée au Raspberry.");
     
     TimerCAM.Camera.free();
+    delay(50);
+    }
+    digitalWrite(LEDIR_PIN, LOW);
+    GoToSleep1min();
   }
 
-  delay(10000); // 10 secondes
+  //------------ WAKE UP TIMER ------------
+  if (cause == ESP_SLEEP_WAKEUP_TIMER) {
+    Serial.println(" TIMER WAKE UP!");
+    
+    // CHECK BATTERY TO ADD 
+    
+    // WIFI
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    Serial.print("WiFi connection...");
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println("\nWiFi connected !");
+
+    client.setServer(MQTT_SERVER, MQTT_PORT);
+    client.setBufferSize(40000); 
+    connectMQTT();
+
+    // Publie le log
+    if(client.publish("camera/log", "Timer wakeup OK")) {
+      delay(100);
+      Serial.println("Log sent successfully!");
+    } 
+    else {
+      Serial.println("Failed to send log");
+    }
+
+    client.loop(); // forcer l’envoi immédiat
+
+    // Retour en deep sleep pour 24h
+    GoToSleep24h();
+  }
+  
+  // ------------ FIRST BOOT --------------
+  Serial.println("First boot => Going to 24h sleep");
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)PIR_PIN, 1);   // HIGH = wakeup
+  GoToSleep24h();
+}
+void loop(){
 }
