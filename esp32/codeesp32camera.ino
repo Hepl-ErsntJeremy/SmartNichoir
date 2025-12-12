@@ -116,7 +116,6 @@ void setup() {
     digitalWrite(LEDIR_PIN, LOW);
     GoToSleep1min();
   }
-
   //------------ WAKE UP TIMER ------------
   if (cause == ESP_SLEEP_WAKEUP_TIMER) {
     Serial.println(" TIMER WAKE UP!");
@@ -125,7 +124,6 @@ void setup() {
     client.setBufferSize(40000); 
     connectMQTT();
 
-    // Publie le log
     if(client.publish("camera/log", "Timer wakeup OK")) {
       delay(100);
       Serial.println("Log sent successfully!");
@@ -134,9 +132,7 @@ void setup() {
       Serial.println("Failed to send log");
     }
     BatteryLevel();
-    client.loop(); // forcer l’envoi immédiat
-
-    // Retour en deep sleep pour 24h
+    client.loop(); 
     GoToSleep24h();
   }
   
