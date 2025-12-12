@@ -21,9 +21,9 @@ def on_connect(client, userdata, flags, rc):
     print("Connecté MQTT, code:", rc)
     client.subscribe("camera/photo")
     client.subscribe("camera/battery")
+    client.subscribe("camera/log")  
 
 def on_message(client, userdata, msg):
-    # Gérer la batterie
     if msg.topic == "camera/battery":
         try:
             battery_percentage = float(msg.payload.decode())
@@ -34,22 +34,21 @@ def on_message(client, userdata, msg):
                 )
                 session.add(new_battery)
                 session.commit()
-                print(f"Batterie enregistrée : {battery_percentage}% - ID = {new_battery.id}")
+                print(f"Battery : {battery_percentage}% - ID = {new_battery.id}")
         except Exception as e:
-            print("Erreur DB (batterie) :", e)
-    
-    # Gérer la photo
+            print("DB Error (battery) :", e)
+
     elif msg.topic == "camera/photo":
-        print("Photo reçue !")
+        print("Photo received !")
 
         filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.jpg")
         filepath = os.path.join(SAVE_DIR, filename)
 
-        # Enregistrer le fichier localement
+        # save file locally
         with open(filepath, "wb") as f:
             f.write(msg.payload)
 
-        # Enregistrer dans MariaDB
+        # save to database
         try:
             with Session() as session:
                 new_photo = Photo(
@@ -59,12 +58,26 @@ def on_message(client, userdata, msg):
                 )
                 session.add(new_photo)
                 session.commit()
-                print("Photo enregistrée dans SQL ! ID =", new_photo.id)
+                print("Photo saved ({filepath}) ID =", new_photo.id)
 
         except Exception as e:
-            print("Erreur DB :", e)
+            print("DB Error (photo) :", e)
 
-        print("Photo enregistrée :", filepath)
+        print("Photo saved :", filepath)
+
+    elif msg.topic == "camera/log":
+        log_message = msg.payload.decode()
+        try:
+            with Session() as session:
+                new_log = Log(
+                    message=log_message,
+                    timestamp=datetime.now()
+                )
+                session.add(new_log)
+                session.commit()
+                print("Log saved ! ID =", new_log.id)
+        except Exception as e:
+            print("DB Error (log) :", e)
 
 client = mqtt.Client()
 client.username_pw_set("timercam", "12345678")
