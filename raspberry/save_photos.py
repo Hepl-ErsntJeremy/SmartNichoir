@@ -20,33 +20,51 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 def on_connect(client, userdata, flags, rc):
     print("Connecté MQTT, code:", rc)
     client.subscribe("camera/photo")
+    client.subscribe("camera/battery")
 
 def on_message(client, userdata, msg):
-    print("Photo reçue !")
+    # Gérer la batterie
+    if msg.topic == "camera/battery":
+        try:
+            battery_percentage = float(msg.payload.decode())
+            with Session() as session:
+                new_battery = Battery(
+                    percentage=battery_percentage,
+                    timestamp=datetime.now()
+                )
+                session.add(new_battery)
+                session.commit()
+                print(f"Batterie enregistrée : {battery_percentage}% - ID = {new_battery.id}")
+        except Exception as e:
+            print("Erreur DB (batterie) :", e)
+    
+    # Gérer la photo
+    elif msg.topic == "camera/photo":
+        print("Photo reçue !")
 
-    filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.jpg")
-    filepath = os.path.join(SAVE_DIR, filename)
+        filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.jpg")
+        filepath = os.path.join(SAVE_DIR, filename)
 
-    # Enregistrer le fichier localement
-    with open(filepath, "wb") as f:
-        f.write(msg.payload)
+        # Enregistrer le fichier localement
+        with open(filepath, "wb") as f:
+            f.write(msg.payload)
 
-    # Enregistrer dans MariaDB
-    try:
-        with Session() as session:
-            new_photo = Photo(
-                file_name=filename,
-                file_path=filepath,
-                timestamp=datetime.now()
-            )
-            session.add(new_photo)
-            session.commit()
-            print("Photo enregistrée dans SQL ! ID =", new_photo.id)
+        # Enregistrer dans MariaDB
+        try:
+            with Session() as session:
+                new_photo = Photo(
+                    file_name=filename,
+                    file_path=filepath,
+                    timestamp=datetime.now()
+                )
+                session.add(new_photo)
+                session.commit()
+                print("Photo enregistrée dans SQL ! ID =", new_photo.id)
 
-    except Exception as e:
-        print("Erreur DB :", e)
+        except Exception as e:
+            print("Erreur DB :", e)
 
-    print("Photo enregistrée :", filepath)
+        print("Photo enregistrée :", filepath)
 
 client = mqtt.Client()
 client.username_pw_set("timercam", "12345678")
