@@ -3,27 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>SmartNichoir</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        /* Conteneur principal : photos + colonne de droite */
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Photos en grille simple 4 colonnes */
+        .photos {
+            flex: 3;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Colonne droite pour batterie */
+        .sidebar {
+            flex: 1;
+            border-left: 1px solid #ccc;
+            padding-left: 15px;
+        }
+    </style>
 </head>
 <body>
 
 <h1>SmartNichoir</h1>
 
-<h2>Dernière batterie : 
-    {% if last_battery %}
-        {{ last_battery.percentage }}%
-    {% else %}
-        Aucune donnée
-    {% endif %}
-</h2>
+<div class="container">
+    <!-- Grille de photos -->
+    <div class="photos">
+        {% for photo in photos %}
+        <div class="photo-item">
+            <img src="{{ url_for('static', filename=photo.file_path.split('static/')[-1]) }}" width="300" alt="{{ photo.file_name }}">
+            <p>{{ photo.timestamp }}</p>
+        </div>
+        {% endfor %}
+    </div>
 
-<h2>Photos</h2>
-
-{% for photo in photos %}
-  <div style="margin-bottom: 20px;">
-    <p>{{ photo.timestamp }}</p>
-    <img src="{{ url_for('static', filename=photo.file_path.split('static/')[-1]) }}" width="300">
-  </div>
-{% endfor %}
+    <!-- Colonne droite -->
+    <div class="sidebar">
+        <h2>Batterie</h2>
+        {% if last_battery %}
+        <p>Dernier pourcentage : {{ last_battery.percentage }}%</p>
+        {% else %}
+        <p>Aucune donnée</p>
+        {% endif %}
+    </div>
+</div>
 
 </body>
 </html>
