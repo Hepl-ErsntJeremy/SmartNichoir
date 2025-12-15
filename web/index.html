@@ -6,7 +6,17 @@
 </head>
 <body>
 
-<h1>Photos</h1>
+<h1>SmartNichoir</h1>
+
+<h2>Dernière batterie : 
+    {% if last_battery %}
+        {{ last_battery.percentage }}%
+    {% else %}
+        Aucune donnée
+    {% endif %}
+</h2>
+
+<h2>Photos</h2>
 
 {% for photo in photos %}
   <div style="margin-bottom: 20px;">
@@ -16,5 +26,4 @@
 {% endfor %}
 
 </body>
-<h2>quoicoubeh</h2>
 </html>
