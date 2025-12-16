@@ -2,7 +2,8 @@ from flask import Flask, render_template
 from sqlalchemy import create_engine, select, desc
 from sqlalchemy.orm import Session
 
-from models import Photo, Battery
+from models import Photo, Battery, Log
+
 app = Flask(__name__)
 
 engine = create_engine(
@@ -21,10 +22,15 @@ def index():
             select(Battery).order_by(desc(Battery.timestamp))
         ).first()
 
+        last_logs = session.scalars(
+            select(Log).order_by(desc(Log.timestamp)).limit(5)
+        ).all()
+
     return render_template(
         "index.html",
         photos=photos,
-        last_battery=last_battery
+        last_battery=last_battery,
+        logs=last_logs
     )
 
 if __name__ == "__main__":
