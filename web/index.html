@@ -56,6 +56,13 @@
         <h2>Batterie</h2>
         {% if last_battery %}
         <p>Dernier pourcentage : {{ last_battery.percentage }}%</p>
+        <h2>Derniers logs</h2>
+        <ul>
+            {% for log in logs %}
+                <li>{{ log.timestamp }} – {{ log.message }}</li>
+            {% endfor %}
+        </ul>
+
         {% else %}
         <p>Aucune donnée</p>
         {% endif %}
