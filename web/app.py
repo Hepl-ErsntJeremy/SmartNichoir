@@ -33,5 +33,9 @@ def index():
         logs=last_logs
     )
 
+@app.route("/log")
+def log():
+    return render_template("log.html")
+
 if __name__ == "__main__":
     app.run(host="192.168.2.223", port=5001, debug=True)
