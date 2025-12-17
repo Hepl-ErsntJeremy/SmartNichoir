@@ -3,13 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <title>Logs</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='log.css') }}">
 </head>
 <body>
 
-<h1>Logs</h1>
-<p>Page logs (à venir)</p>
+<a href="/" class="back-button">
+    ← Back
+</a>
 
-<a href="/">⬅ Retour à l'accueil</a>
+<h1>Logs</h1>
+
+<div class="container">
+
+    <!-- LOGS -->
+    <div class="logs">
+        <h2>System logs</h2>
+
+        <div class="log-columns">
+
+            <!-- ERROR -->
+            <div class="log-col error">
+                <h3>ERROR</h3>
+
+                <div class="log-list">
+                    {% for log in logs %}
+                        {% if 'error' in log.message.lower() %}
+                            <div class="log-item">
+                                {{ log.timestamp.strftime("%d/%m/%Y %H:%M:%S") }}<br>
+                                {{ log.message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <!-- WARNING -->
+            <div class="log-col warning">
+                <h3>WARNING</h3>
+
+                <div class="log-list">
+                    {% for log in logs %}
+                        {% if 'warning' in log.message.lower() %}
+                            <div class="log-item">
+                                {{ log.timestamp.strftime("%d/%m/%Y %H:%M:%S") }}<br>
+                                {{ log.message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <!-- INFO -->
+            <div class="log-col info">
+                <h3>INFO</h3>
+
+                <div class="log-list">
+                    {% for log in logs %}
+                        {% if 'error' not in log.message.lower() and 'warning' not in log.message.lower() %}
+                            <div class="log-item">
+                                {{ log.timestamp.strftime("%d/%m/%Y %H:%M:%S") }}<br>
+                                {{ log.message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BATTERY -->
+    <div class="battery">
+        <h2>Battery</h2>
+
+        <div class="log-list">
+            {% for b in battery_logs %}
+                <div class="log-item">
+                    {{ b.timestamp.strftime("%d/%m/%Y %H:%M:%S") }}<br>
+                    {{ b.percentage }} %
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+</div>
+
+<button id="toggle-all" class="see-more">
+    See more
+</button>
+
+
+<script>
+    const button = document.getElementById("toggle-all");
+    const lists = document.querySelectorAll(".log-list");
+
+    button.addEventListener("click", () => {
+        let isOpen = false;
+
+        lists.forEach(list => {
+            if (list.classList.contains("open")) {
+                isOpen = true;
+            }
+        });
+
+        lists.forEach(list => {
+            list.classList.toggle("open", !isOpen);
+        });
+
+        button.textContent = isOpen ? "See more" : "See less";
+    });
+</script>
+
 
 </body>
 </html>
