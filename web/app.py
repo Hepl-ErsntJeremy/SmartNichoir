@@ -22,15 +22,34 @@ def index():
             select(Battery).order_by(desc(Battery.timestamp))
         ).first()
 
-        last_logs = session.scalars(
-            select(Log).order_by(desc(Log.timestamp)).limit(5)
+        all_logs = session.scalars(
+            select(Log).order_by(desc(Log.timestamp))
         ).all()
+
+        error_logs = []
+        warning_logs = []
+        info_logs = []
+
+        for log in all_logs:
+            msg = log.message.lower()
+            if "error" in msg and len(error_logs) < 2:
+                error_logs.append(log)
+            elif "warning" in msg and len(warning_logs) < 2:
+                warning_logs.append(log)
+            elif "error" not in msg and "warning" not in msg and len(info_logs) < 2:
+                info_logs.append(log)
+
+            if len(error_logs) == 2 and len(warning_logs) == 2 and len(info_logs) == 2:
+                break
+
 
     return render_template(
         "index.html",
         photos=photos,
         last_battery=last_battery,
-        logs=last_logs
+        error_logs=error_logs,
+        warning_logs=warning_logs,
+        info_logs=info_logs
     )
 
 @app.route("/log")
