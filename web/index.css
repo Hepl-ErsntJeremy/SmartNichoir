@@ -6,6 +6,27 @@ body {
     color: #e6e6e6;
 }
 
+/* ===== TITRE PRINCIPAL ===== */
+.main-title {
+    text-align: center;
+    font-size: 56px;              /* grand */
+    font-weight: 800;
+    margin: 20px 0 30px 0;
+    letter-spacing: 2px;
+
+    /* couleur douce */
+    color: #ffffff;
+
+    /* belle typo moderne */
+    font-family: "Segoe UI", "Inter", "Montserrat", Arial, sans-serif;
+
+    /* léger effet de profondeur */
+    text-shadow: 
+        0 2px 10px rgba(0,0,0,0.6),
+        0 0 20px rgba(255,255,255,0.1);
+}
+
+
 /* ===== BOUTON TOGGLE SIDEBAR ===== */
 #toggle-sidebar {
     position: fixed;
@@ -203,3 +224,5 @@ h2, h3 {
 ::-webkit-scrollbar-thumb:hover {
     background: #3a3f55;
 }
+
+
