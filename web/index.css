@@ -50,6 +50,29 @@ body {
     border-radius: 5px;
 }
 
+/* ===== PHOTO OVERLAY ===== */
+.photo-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    cursor: zoom-out;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.photo-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 /* ===== SIDEBAR ===== */
 .sidebar {
     flex: 1;
