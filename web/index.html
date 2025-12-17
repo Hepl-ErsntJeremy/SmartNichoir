@@ -3,40 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>SmartNichoir</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        /* Conteneur principal : photos + colonne de droite */
-        .container {
-            display: flex;
-            gap: 20px;
-        }
-
-        /* Photos en grille simple 4 colonnes */
-        .photos {
-            flex: 3;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-
-        .photo-item img {
-            width: 100%;
-            height: auto;
-        }
-
-        /* Colonne droite pour batterie */
-        .sidebar {
-            flex: 1;
-            border-left: 1px solid #ccc;
-            padding-left: 15px;
-        }
-    </style>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
+
+<button id="toggle-sidebar">☰</button>
 
 <h1>SmartNichoir</h1>
 
@@ -93,6 +66,15 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    const toggleBtn = document.getElementById("toggle-sidebar");
+    const container = document.querySelector(".container");
+
+    toggleBtn.addEventListener("click", () => {
+        container.classList.toggle("sidebar-hidden");
+    });
+</script>
 
 </body>
 </html>
