@@ -35,7 +35,21 @@ def index():
 
 @app.route("/log")
 def log():
-    return render_template("log.html")
+    with Session(engine) as session:
+        logs = session.scalars(
+            select(Log).order_by(desc(Log.timestamp))
+        ).all()
+
+        battery_logs = session.scalars(
+            select(Battery).order_by(desc(Battery.timestamp))
+        ).all()
+
+    return render_template(
+        "log.html",
+        logs=logs,
+        battery_logs=battery_logs
+    )
+
 
 if __name__ == "__main__":
     app.run(host="192.168.2.223", port=5001, debug=True)
