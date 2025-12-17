@@ -1,0 +1,180 @@
+/* ===== RESET & BASE ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 15px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: #0f1117;
+    color: #e6e6e6;
+}
+
+h1 {
+    margin-bottom: 5px;
+}
+
+h2 {
+    margin: 10px 0;
+}
+
+h3 {
+    margin: 5px 0 10px 0;
+    text-align: center;
+}
+
+/* ===== LINKS ===== */
+a {
+    color: #4da3ff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ===== LAYOUT ===== */
+.container {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.logs {
+    width: 75%;
+}
+
+.battery {
+    width: 25%;
+    padding-left: 15px;
+    border-left: 1px solid #2a2d3a;
+}
+
+/* ===== LOG COLUMNS ===== */
+.log-columns {
+    display: flex;
+    gap: 15px;
+}
+
+.log-col {
+    width: 33%;
+    background: #161a23;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== LOG LIST ===== */
+.log-list {
+    max-height: 435px;
+    overflow: hidden;
+}
+
+.log-list.open {
+    max-height: none;
+}
+
+/* ===== LOG ITEMS ===== */
+.log-item {
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    border-radius: 4px;
+    line-height: 1.4;
+    background-color: #1d2230;
+}
+
+/* ===== ERROR / WARNING / INFO COLORS ===== */
+.log-col.error h3 {
+    color: #ff5c5c;
+}
+
+.log-col.error .log-item {
+    border-left: 4px solid #ff5c5c;
+}
+
+.log-col.warning h3 {
+    color: #ffb347;
+}
+
+.log-col.warning .log-item {
+    border-left: 4px solid #ffb347;
+}
+
+.log-col.info h3 {
+    color: #4da3ff;
+}
+
+.log-col.info .log-item {
+    border-left: 4px solid #4da3ff;
+}
+
+/* ===== BATTERY ===== */
+.battery h2 {
+    text-align: center;
+}
+
+.battery .log-item {
+    background-color: #161a23;
+    border-left: 4px solid #4caf50;
+}
+
+/* ===== BUTTON ===== */
+.see-more {
+    margin-top: 6px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: #8ab4ff;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 5px;
+}
+
+.see-more:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f1117;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2a2d3a;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3a3f55;
+}
+
+/* ===== BACK BUTTON ===== */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    background-color: #161a23;
+    border: 1px solid #2a2d3a;
+    border-radius: 6px;
+    color: #e6e6e6;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: #1f2433;
+    border-color: #3a3f55;
+}
+
