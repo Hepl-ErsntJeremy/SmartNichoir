@@ -2,8 +2,8 @@ import paho.mqtt.client as mqtt
 from datetime import datetime
 import os
 
-from SQLAlchemy import create_engine
-from SQLAlchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from SmartNichoir_tables import Photo, Log, Battery, Base
 
@@ -14,14 +14,14 @@ engine = create_engine(
 )
 Session = sessionmaker(bind=engine)
 
-SAVE_DIR = "/home/ethan/camera/photos"
+SAVE_DIR = "/home/ethan/camera/enviVirtuel/site/static/photos"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 def on_connect(client, userdata, flags, rc):
     print("Connecté MQTT, code:", rc)
     client.subscribe("camera/photo")
     client.subscribe("camera/battery")
-    client.subscribe("camera/log")  
+    client.subscribe("camera/log")
 
 def on_message(client, userdata, msg):
     if msg.topic == "camera/battery":
