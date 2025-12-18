@@ -26,7 +26,7 @@ void connectMQTT() {
 
 void GoToSleep1min (){
   Serial.println(" Sleep 1min...");
-  esp_sleep_enable_ext0_wakeup((gpio_num_t)PIR_PIN, 1);
+  esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_EXT0); 
   esp_sleep_enable_timer_wakeup(60ULL * 1000000ULL);
   esp_deep_sleep_start();
 }
@@ -43,7 +43,7 @@ void BatteryLevel(){
         connectMQTT();
     }
     float level = TimerCAM.Power.getBatteryLevel();
-    level = 49.3;
+    level = 46.12;
     char msg[50];
     sprintf(msg, "%.2f", level);
     client.publish("camera/battery", msg);
@@ -51,14 +51,31 @@ void BatteryLevel(){
     Serial.printf("Battery : %s %\n", msg);
 }
 
+void LogSend(const char* message) {
+
+  if (!client.connected()) {
+    connectMQTT();
+  }
+  bool ok = client.publish("camera/log", message);
+
+  if (ok) {
+    Serial.print("Log sent : ");
+    Serial.println(message);
+  } else {
+    Serial.print("Log FAILED : ");
+    Serial.println(message);
+  }
+  client.loop();
+  delay(100);
+}
+
 void setup() {
   Serial.begin(115200);
   TimerCAM.begin(true);
+
   pinMode(LEDIR_PIN, OUTPUT);
   pinMode(PIR_PIN, INPUT);
-
   digitalWrite(LEDIR_PIN, LOW);
-
   //------------ Connexion Wifi ------------
   WiFiManager wm;
   // Custom parameters
@@ -74,6 +91,11 @@ void setup() {
   if(!wm.autoConnect("ESP32_SmartNichoir_TTPCBB", "12345678")) {
       Serial.println("Wifi connection failed");
   }
+
+  client.setServer(MQTT_SERVER, MQTT_PORT);
+  client.setBufferSize(40000); 
+  connectMQTT();
+
   // Get wake-up cause 
   esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
 
@@ -81,6 +103,7 @@ void setup() {
   if (cause == ESP_SLEEP_WAKEUP_EXT0) {
 
     Serial.println("Wake Up!");
+    LogSend("Wake Up PIR");
 
     // Enable led
     digitalWrite(LEDIR_PIN, HIGH);  
@@ -89,17 +112,16 @@ void setup() {
     // Init camera 
     TimerCAM.begin();  
     if (!TimerCAM.Camera.begin()) {
-      Serial.println("Camera Init Fail");
+      Serial.println("Camera Init Failed");
+      LogSend("ERROR: Camera Init Failed");
       return;
     }
     Serial.println("Camera Init Success");
+    LogSend("Camera Init Success");
     TimerCAM.Camera.sensor->set_pixformat(TimerCAM.Camera.sensor, PIXFORMAT_JPEG);
-    TimerCAM.Camera.sensor->set_framesize(TimerCAM.Camera.sensor, FRAMESIZE_VGA); // 640x480  
+    TimerCAM.Camera.sensor->set_framesize(TimerCAM.Camera.sensor, FRAMESIZE_XGA); // VGA = 640x480  XGA = 1024×768  
     TimerCAM.Camera.sensor->set_hmirror(TimerCAM.Camera.sensor, 0);
     TimerCAM.Camera.sensor->set_vflip(TimerCAM.Camera.sensor, 1);
-
-    client.setServer(MQTT_SERVER, MQTT_PORT);
-    client.setBufferSize(40000);
 
     if (TimerCAM.Camera.get()) {
     Serial.println("Photo !");
@@ -110,6 +132,7 @@ void setup() {
     client.publish("camera/photo",buf,len);
     Serial.println("Photo sent to Raspberry.");
     BatteryLevel();
+    LogSend("Photo Sent");
     TimerCAM.Camera.free();
     delay(50);
     }
@@ -119,27 +142,20 @@ void setup() {
   //------------ WAKE UP TIMER ------------
   if (cause == ESP_SLEEP_WAKEUP_TIMER) {
     Serial.println(" TIMER WAKE UP!");
-
-    client.setServer(MQTT_SERVER, MQTT_PORT);
-    client.setBufferSize(40000); 
-    connectMQTT();
-
-    if(client.publish("camera/log", "Timer wakeup OK")) {
-      delay(100);
-      Serial.println("Log sent successfully!");
-    } 
-    else {
-      Serial.println("Failed to send log");
-    }
+    LogSend("Wake Up Timer");
     BatteryLevel();
     client.loop(); 
     GoToSleep24h();
   }
   
   // ------------ FIRST BOOT --------------
+  LogSend("Warning Test");
+  LogSend("Error Test");
   Serial.println("First boot => Going to 24h sleep");
   esp_sleep_enable_ext0_wakeup((gpio_num_t)PIR_PIN, 1);   // HIGH = wakeup
+
   GoToSleep24h();
+
 }
 void loop(){
 }
