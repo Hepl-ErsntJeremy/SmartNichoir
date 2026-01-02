@@ -1,0 +1,15 @@
+[Unit]
+Description=MQTT Listener SmartNichoir
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/ethan/camera/enviVirtuel/bin/python /home/ethan/camera/enviVirtuel/save_photos.py
+WorkingDirectory=/home/ethan/camera/enviVirtuel
+Restart=always
+RestartSec=5
+User=ethan
+Environment=PATH=/home/ethan/camera/enviVirtuel/bin
+
+[Install]
+WantedBy=multi-user.target
