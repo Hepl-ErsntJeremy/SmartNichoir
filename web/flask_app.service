@@ -1,0 +1,15 @@
+[Unit]
+Description=Flask Web Server SmartNichoir
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/ethan/camera/enviVirtuel/bin/python /home/ethan/camera/enviVirtuel/site/app.py
+WorkingDirectory=/home/ethan/camera/enviVirtuel/site
+Restart=always
+RestartSec=5
+User=ethan
+Environment=PATH=/home/ethan/camera/enviVirtuel/bin
+
+[Install]
+WantedBy=multi-user.target
